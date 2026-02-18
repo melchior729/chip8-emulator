@@ -18,6 +18,9 @@ private:
   uint8_t SP = 0;                 // topmost level of the stack
   uint8_t DT = 0;                 // delay timer register
   uint8_t ST = 0;                 // sound timer register, play if > 0
+
+  void sys(uint16_t address);
+
 public:
   Chip8();
   Chip8(std::array<uint8_t, MEMORY_SIZE> memory);
