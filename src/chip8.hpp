@@ -91,7 +91,7 @@ private:
   /// 8XY0
   /// @param register_x the register number, x in V_x
   /// @param register_y the register number, y in V_y
-  void load_from_register(uint8_t register_x, uint8_t register_y);
+  void load_from_register_to_register(uint8_t register_x, uint8_t register_y);
 
   /// @brief performs bitwise OR on V_x and V_y, stores in V_x
   /// 8XY1
@@ -145,7 +145,7 @@ private:
   /// 9XY0
   /// @param register_x the register number, x in V_x
   /// @param register_y the register number, y in V_y
-  void skip_next_if_not_equal_register(uint8_t register_x, uint8_t register_y);
+  void skip_next_if_not_equal_registers(uint8_t register_x, uint8_t register_y);
 
   /// @brief loads nnn into I
   /// ANNN
@@ -275,9 +275,15 @@ public:
   /// @return the content of the delay time register
   uint8_t get_DT() const;
 
+  /// @brief sets the delay timer register to the provided value
+  void set_DT(uint8_t value);
+
   /// @brief returns the content of the sound timer register
   /// @return the content of the sound timer register
   uint8_t get_ST() const;
+
+  /// @brief sets the sound timer register to the provided value
+  void set_ST(uint8_t value);
 
   /// @brief sets the keypad value to the status value
   void set_keypad(uint8_t register_num, uint8_t status);
