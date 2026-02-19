@@ -27,6 +27,21 @@ protected:
   }
 };
 
+// loads the font data into the memory, tests the configured memory
+TEST_F(Chip8Test, LoadFontDataWorks) {
+  load(Chip8::START, 0xA0, 0x32);
+  load(Chip8::START + 2, 0xF4, 0x65);
+  cpu.cycle();
+  cpu.cycle();
+
+  /// Sprite A is 0xF0, 0x90, 0xF0, 0x90, 0x90
+  EXPECT_EQ(cpu.get_register(0), 0xF0);
+  EXPECT_EQ(cpu.get_register(1), 0x90);
+  EXPECT_EQ(cpu.get_register(2), 0xF0);
+  EXPECT_EQ(cpu.get_register(3), 0x90);
+  EXPECT_EQ(cpu.get_register(4), 0x90);
+}
+
 // sys sets the PC to 0xFFF
 TEST_F(Chip8Test, SysSetsPCToAddress) {
   load(Chip8::START, 0x0F, 0xFF);
@@ -277,6 +292,29 @@ TEST_F(Chip8Test, RandomNumberAndByteWorks) {
 }
 
 // TODO: DRAW FUNCTION TEST
+TEST_F(Chip8Test, DrawUpdatesDisplayBufferProperly) {
+  // store 63 in v0
+  // store 31 in v1
+  // set A to v2
+  // run load sprite command with v2 - should set I to the location of A
+  // call function with 5 replacing N
+  // get the display_buffer back and check to see if it has the correct values
+
+  load(Chip8::START, 0x60, 0x3F);
+  load(Chip8::START + 2, 0x61, 0x1F);
+  load(Chip8::START + 4, 0x62, 0x0A);
+  load(Chip8::START + 6, 0xF2, 0x29);
+  load(Chip8::START + 8, 0xD0, 0x15);
+
+  for (uint8_t i = 0; i < 5; i++) {
+    cpu.cycle();
+  }
+
+  const auto &display_buffer = cpu.get_display_buffer();
+
+  // lit up draw the exact same sprite again get back the display buffer, it
+  // should now be empty, but then the vf field should be set to 1.
+}
 
 // skips the next instruction if the key is pressed
 TEST_F(Chip8Test, SkipIfPressedKeyWorks) {
@@ -305,9 +343,19 @@ TEST_F(Chip8Test, LoadFromDelayTimerToRegisterWorks) {
   EXPECT_EQ(cpu.get_register(0), 0x05);
 }
 
-// TODO: STORE KEY PRESS
+// stops the program until a button is pressed, stores it in a register
+TEST_F(Chip8Test, ExecutionStopsUntilKeyPressed) {
+  load(Chip8::START, 0xF0, 0x0A);
+  cpu.cycle();
 
-// sets the delay timer register to the provided register
+  EXPECT_EQ(cpu.get_PC(), Chip8::START);
+  cpu.set_keypad(0xF, 1);
+  cpu.cycle();
+
+  EXPECT_EQ(cpu.get_register(0), 0xF);
+  EXPECT_EQ(cpu.get_PC(), Chip8::START + 2);
+}
+
 TEST_F(Chip8Test, SetDelayTimerFromRegisterWorks) {
   load(Chip8::START, 0x60, 0xFF);
   load(Chip8::START + 2, 0xF0, 0x15);
@@ -340,9 +388,32 @@ TEST_F(Chip8Test, AddIAndRegisterAndStoreInI) {
   EXPECT_EQ(cpu.get_I(), 0xABC);
 }
 
-// TODO: LOAD SPRITE
+// sets the value of I to the address of sprite in memory, determined by V_x
+TEST_F(Chip8Test, SetsIToSpriteAddress) {
+  load(Chip8::START, 0x60, 0x0A);
+  load(Chip8::START + 2, 0xF0, 0x29);
+  cpu.cycle();
+  cpu.cycle();
 
-// TODO: WRITE BCD
+  EXPECT_EQ(cpu.get_I(), 0x32);
+}
+
+// writes the the first decimal digit of V_x in I, then the second in I + 1, and
+// the third in I + 2
+TEST_F(Chip8Test, WriteBinaryCodedDecimalAtILocationFromRegister) {
+  load(Chip8::START, 0x60, 0xF1); // 241
+  load(Chip8::START + 2, 0xA3, 0x00);
+  load(Chip8::START + 4, 0xF0, 0x33);
+  load(Chip8::START + 6, 0xF2, 0x65);
+
+  for (uint8_t i = 0; i < 4; i++) {
+    cpu.cycle();
+  }
+
+  EXPECT_EQ(cpu.get_register(0), 0x02);
+  EXPECT_EQ(cpu.get_register(1), 0x04);
+  EXPECT_EQ(cpu.get_register(2), 0x01);
+}
 
 // stores registers V_0 to V_x, starting at address in I
 TEST_F(Chip8Test, StoreRegistersIntoMemoryWorks) {
@@ -350,7 +421,6 @@ TEST_F(Chip8Test, StoreRegistersIntoMemoryWorks) {
   load(Chip8::START + 2, 0x60, 0x32);
   load(Chip8::START + 4, 0x61, 0x14);
   load(Chip8::START + 6, 0xF1, 0x55);
-
   load(Chip8::START + 8, 0x60, 0x00);
   load(Chip8::START + 10, 0x61, 0x00);
   load(Chip8::START + 12, 0xF1, 0x65);
