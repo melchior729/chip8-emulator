@@ -8,14 +8,17 @@
 #include <cstdint>
 
 class Chip8 {
+public:
+  // hardware constants
+  static constexpr int MEMORY_SIZE = 4096;
+  static constexpr int START = 0x200;
+  static constexpr int WIDTH = 64;
+  static constexpr int HEIGHT = 32;
+
 private:
   static constexpr int STACK_SIZE = 16;
   static constexpr int REGISTER_COUNT = 16;
   static constexpr int KEYPAD_OPTIONS = 16;
-  static constexpr int MEMORY_SIZE = 4096;
-  static constexpr int STARTING_ADDRESS = 0x200;
-  static constexpr int WIDTH = 64;
-  static constexpr int HEIGHT = 32;
   static constexpr int FREQUENCY = 432; // audio frequency
 
   std::array<uint16_t, STACK_SIZE> stack{};     // stores return addresses
@@ -25,11 +28,11 @@ private:
       display_buffer{}; // pixel values, on or off
   std::array<uint8_t, MEMORY_SIZE> memory{};
 
-  uint16_t I = 0;                 // stores memory addresses, use 12 lowest bits
-  uint16_t PC = STARTING_ADDRESS; // currently executing address
-  uint8_t SP = 0;                 // topmost level of the stack
-  uint8_t DT = 0;                 // delay timer register
-  uint8_t ST = 0;                 // sound timer register, play if > 0
+  uint16_t I = 0;      // stores memory addresses, use 12 lowest bits
+  uint16_t PC = START; // currently executing address
+  uint8_t SP = 0;      // topmost level of the stack
+  uint8_t DT = 0;      // delay timer register
+  uint8_t ST = 0;      // sound timer register, play if > 0
 
   /// @brief jumps to a routine at nnn
   /// 0NNN
@@ -230,51 +233,51 @@ public:
 
   /// @brief constructs a Chip8 with preloaded memory
   /// @param memory the memory to initialize with
-  explicit Chip8(std::array<uint8_t, MEMORY_SIZE> memory);
+  explicit Chip8(const std::array<uint8_t, MEMORY_SIZE> &memory);
 
   /// @brief replaces the Chip8's memory with the provided one
   /// @param memory the new memory to use
-  void load_into_memory(std::array<uint8_t, MEMORY_SIZE> memory);
+  void load_into_memory(const std::array<uint8_t, MEMORY_SIZE> &memory);
 
   /// @brief performs one cpu tick
   void cycle();
 
   /// @brief returns the display buffer, 64 x 32
   /// @return the display buffer
-  std::array<uint8_t, WIDTH * HEIGHT> get_display_buffer();
+  const std::array<uint8_t, WIDTH * HEIGHT> &get_display_buffer() const;
 
   /// @brief returns the stack
   /// @return the stack
-  std::array<uint16_t, STACK_SIZE> get_stack();
+  const std::array<uint16_t, STACK_SIZE> &get_stack() const;
 
   /// @brief returns the list of registers
   /// @return the list of registers
-  std::array<uint8_t, REGISTER_COUNT> get_registers();
+  const std::array<uint8_t, REGISTER_COUNT> &get_registers() const;
 
   /// @brief returns a specific register
   /// @param register_num the register number
   /// @return the content of the register
-  uint8_t get_register(uint8_t register_num);
+  uint8_t get_register(uint8_t register_num) const;
 
   /// @brief returns the content of I register
   /// @return the I register
-  uint16_t get_I();
+  uint16_t get_I() const;
 
   /// @brief returns the content of the program counter register
   /// @return the content of the program counter reigster
-  uint16_t get_PC();
+  uint16_t get_PC() const;
 
   /// @brief returns the content of the stack pointer register
   /// @return the content of the stack pointer register
-  uint8_t get_SP();
+  uint8_t get_SP() const;
 
   /// @brief returns the content of the delay time register
   /// @return the content of the delay time register
-  uint8_t get_DT();
+  uint8_t get_DT() const;
 
   /// @brief returns the content of the sound timer register
   /// @return the content of the sound timer register
-  uint8_t get_ST();
+  uint8_t get_ST() const;
 
   /// @brief sets the keypad value to the status value
   void set_keypad(uint8_t register_num, uint8_t status);
