@@ -3,6 +3,8 @@
 
 class Chip8Test : public ::testing::Test {
 protected:
+  Chip8 cpu;
+
   void SetUp() override {
     //
     //
@@ -13,3 +15,10 @@ protected:
     //
   }
 };
+
+TEST(Chip8Test, )
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
