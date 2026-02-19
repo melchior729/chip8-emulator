@@ -73,7 +73,7 @@ private:
   /// 5XY0
   /// @param register_x the register number, x in V_x
   /// @param register_y the register number, y in V_y
-  void skip_next_if_equal_register(uint8_t register_x, uint8_t register_y);
+  void skip_next_if_equal_registers(uint8_t register_x, uint8_t register_y);
 
   /// @brief stores value of byte in V_x.
   /// 6XNN
