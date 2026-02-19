@@ -294,4 +294,7 @@ public:
   /// @param register_num 0-F the keypad register index
   /// @param status the state of the button pressed, 0 or 1
   void set_keypad(uint8_t register_num, uint8_t status);
+
+  /// @brief resets the state of the Chip8
+  void reset();
 };
