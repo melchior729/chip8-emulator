@@ -242,4 +242,40 @@ public:
   /// @brief returns the display buffer, 64 x 32
   /// @return the display buffer
   std::array<uint8_t, WIDTH * HEIGHT> get_display_buffer();
+
+  /// @brief returns the stack
+  /// @return the stack
+  std::array<uint16_t, STACK_SIZE> get_stack();
+
+  /// @brief returns the list of registers
+  /// @return the list of registers
+  std::array<uint8_t, REGISTER_COUNT> get_registers();
+
+  /// @brief returns a specific register
+  /// @param register_num the register number
+  /// @return the content of the register
+  uint8_t get_register(uint8_t register_num);
+
+  /// @brief returns the content of I register
+  /// @return the I register
+  uint16_t get_I();
+
+  /// @brief returns the content of the program counter register
+  /// @return the content of the program counter reigster
+  uint16_t get_PC();
+
+  /// @brief returns the content of the stack pointer register
+  /// @return the content of the stack pointer register
+  uint8_t get_SP();
+
+  /// @brief returns the content of the delay time register
+  /// @return the content of the delay time register
+  uint8_t get_DT();
+
+  /// @brief returns the content of the sound timer register
+  /// @return the content of the sound timer register
+  uint8_t get_ST();
+
+  /// @brief sets the keypad value to the status value
+  void set_keypad(uint8_t register_num, uint8_t status);
 };
