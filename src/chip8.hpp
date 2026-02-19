@@ -34,6 +34,9 @@ private:
   uint8_t DT = 0;      // delay timer register
   uint8_t ST = 0;      // sound timer register, play if > 0
 
+  /// @brief loads the font data into the memory
+  void load_font_data();
+
   /// @brief jumps to a routine at nnn
   /// 0NNN
   /// @param address 0nnn
@@ -276,6 +279,7 @@ public:
   uint8_t get_DT() const;
 
   /// @brief sets the delay timer register to the provided value
+  /// @param the value to set
   void set_DT(uint8_t value);
 
   /// @brief returns the content of the sound timer register
@@ -283,8 +287,11 @@ public:
   uint8_t get_ST() const;
 
   /// @brief sets the sound timer register to the provided value
+  /// @param the value to set
   void set_ST(uint8_t value);
 
   /// @brief sets the keypad value to the status value
+  /// @param register_num 0-F the keypad register index
+  /// @param status the state of the button pressed, 0 or 1
   void set_keypad(uint8_t register_num, uint8_t status);
 };
