@@ -57,6 +57,56 @@ TEST_F(Chip8Test, RetReturnsFromSubroutine) {
   EXPECT_EQ(cpu.get_SP(), sp_after_call - 1);
 }
 
+// jumps to an address and checks if its right
+TEST_F(Chip8Test, JumpsToCorrectAddress) {
+  load(Chip8::START, 0x1F, 0xFF);
+  cpu.cycle();
+  EXPECT_EQ(cpu.get_PC(), 0xFFF);
+}
+
+// call adds the address to the stack and updates the program counter
+TEST_F(Chip8Test, CallAddsToStackAndChangesPC) {
+  load(Chip8::START, 0x2F, 0xFF);
+  cpu.cycle();
+
+  EXPECT_EQ(cpu.get_PC(), 0xFFF);
+  EXPECT_EQ(cpu.get_SP(), 1);
+  EXPECT_EQ(cpu.get_stack()[cpu.get_SP() - 1], Chip8::START + 2);
+}
+
+// skips the next instruction of the content of register and byte are equal
+TEST_F(Chip8Test, SkipNextIfEqualByteWorks) {
+  load(Chip8::START, 0x60, 0xFF);
+  load(Chip8::START + 2, 0x30, 0xFF);
+  cpu.cycle();
+  cpu.cycle();
+
+  EXPECT_EQ(cpu.get_PC(), Chip8::START + 6);
+}
+
+// skips the next instruction of the content of register and byte are not equal
+TEST_F(Chip8Test, SkipNextIfNotEqualByteWorks) {
+  load(Chip8::START, 0x60, 0xFF);
+  load(Chip8::START + 2, 0x40, 0xFF);
+  cpu.cycle();
+  cpu.cycle();
+
+  EXPECT_EQ(cpu.get_PC(), Chip8::START + 4);
+}
+
+// skips the next instruction if the two registers hold the same values
+TEST_F(Chip8Test, SkipNextIfEqualRegistersWorks) {
+  load(Chip8::START, 0x60, 0xFF);
+  load(Chip8::START + 2, 0x61, 0xFF);
+  load(Chip8::START + 4, 0x50, 0x10);
+
+  for (uint8_t i = 0; i < 3; i++) {
+    cpu.cycle();
+  }
+
+  EXPECT_EQ(cpu.get_PC(), Chip8::START + 8);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
