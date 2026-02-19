@@ -23,14 +23,15 @@ protected:
   void load(uint16_t address, uint8_t byte_x, uint8_t byte_y) {
     memory[address] = byte_x;
     memory[address + 1] = byte_y;
-    cpu.load_into_memory(memory);
   }
 };
 
 // loads the font data into the memory, tests the configured memory
 TEST_F(Chip8Test, LoadFontDataWorks) {
+  // A is at 5 * 10 = 50 = 0x32, 5 registers since 5 bytes
   load(Chip8::START, 0xA0, 0x32);
   load(Chip8::START + 2, 0xF4, 0x65);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -45,6 +46,7 @@ TEST_F(Chip8Test, LoadFontDataWorks) {
 // sys sets the PC to 0xFFF
 TEST_F(Chip8Test, SysSetsPCToAddress) {
   load(Chip8::START, 0x0F, 0xFF);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   EXPECT_EQ(cpu.get_PC(), 0xFFF);
 }
@@ -52,6 +54,7 @@ TEST_F(Chip8Test, SysSetsPCToAddress) {
 // cls clears the display buffer
 TEST_F(Chip8Test, ClsClearsDisplayBuffer) {
   load(Chip8::START, 0x00, 0xE0);
+  cpu.load_into_memory(memory);
   cpu.cycle();
 
   const auto &display_buffer = cpu.get_display_buffer();
@@ -63,8 +66,11 @@ TEST_F(Chip8Test, ClsClearsDisplayBuffer) {
 
 // ret comes back from a subroutine
 TEST_F(Chip8Test, RetReturnsFromSubroutine) {
-  load(Chip8::START, 0x2F, 0xFF);
-  load(0xFFF, 0x00, 0xEE);
+  // at 0x200, go to 0xF00, put 0x200 on stack
+  load(Chip8::START, 0x2F, 0x00);
+  // at 0xF00, return call to previous
+  load(0xF00, 0x00, 0xEE);
+  cpu.load_into_memory(memory);
   cpu.cycle(); // call
   uint8_t sp_after_call = cpu.get_SP();
   cpu.cycle(); // ret
@@ -75,6 +81,7 @@ TEST_F(Chip8Test, RetReturnsFromSubroutine) {
 // jumps to an address and checks if its right
 TEST_F(Chip8Test, JumpsToCorrectAddress) {
   load(Chip8::START, 0x1F, 0xFF);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   EXPECT_EQ(cpu.get_PC(), 0xFFF);
 }
@@ -82,6 +89,7 @@ TEST_F(Chip8Test, JumpsToCorrectAddress) {
 // call adds the address to the stack and updates the program counter
 TEST_F(Chip8Test, CallAddsToStackAndChangesPC) {
   load(Chip8::START, 0x2F, 0xFF);
+  cpu.load_into_memory(memory);
   cpu.cycle();
 
   EXPECT_EQ(cpu.get_PC(), 0xFFF);
@@ -93,6 +101,7 @@ TEST_F(Chip8Test, CallAddsToStackAndChangesPC) {
 TEST_F(Chip8Test, SkipNextIfEqualByteWorks) {
   load(Chip8::START, 0x60, 0xFF);
   load(Chip8::START + 2, 0x30, 0xFF);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -103,6 +112,7 @@ TEST_F(Chip8Test, SkipNextIfEqualByteWorks) {
 TEST_F(Chip8Test, SkipNextIfNotEqualByteWorks) {
   load(Chip8::START, 0x60, 0xFF);
   load(Chip8::START + 2, 0x40, 0xFF);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -114,6 +124,7 @@ TEST_F(Chip8Test, SkipNextIfEqualRegistersWorks) {
   load(Chip8::START, 0x60, 0xFF);
   load(Chip8::START + 2, 0x61, 0xFF);
   load(Chip8::START + 4, 0x50, 0x10);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 3; i++) {
     cpu.cycle();
@@ -125,6 +136,7 @@ TEST_F(Chip8Test, SkipNextIfEqualRegistersWorks) {
 // loads a byte to a given register
 TEST_F(Chip8Test, LoadsFromByteToRegisterWorks) {
   load(Chip8::START, 0x60, 0xFF);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   EXPECT_EQ(cpu.get_register(0), 0xFF);
 }
@@ -133,6 +145,7 @@ TEST_F(Chip8Test, LoadsFromByteToRegisterWorks) {
 TEST_F(Chip8Test, AddsRegisterToByteAndStoresInRegister) {
   load(Chip8::START, 0x60, 0x02);
   load(Chip8::START + 2, 0x70, 0x10);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -143,6 +156,7 @@ TEST_F(Chip8Test, AddsRegisterToByteAndStoresInRegister) {
 TEST_F(Chip8Test, LoadsRegisterToRegisterWorks) {
   load(Chip8::START, 0x61, 0xFF);
   load(Chip8::START + 2, 0x80, 0x10);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -154,6 +168,7 @@ TEST_F(Chip8Test, BitWiseOrWorks) {
   load(Chip8::START, 0x60, 0xDA);
   load(Chip8::START + 2, 0x61, 0x2C);
   load(Chip8::START + 4, 0x80, 0x11);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 3; i++) {
     cpu.cycle();
@@ -167,6 +182,7 @@ TEST_F(Chip8Test, BitWiseAndWorks) {
   load(Chip8::START, 0x60, 0xFB);
   load(Chip8::START + 2, 0x61, 0x2D);
   load(Chip8::START + 4, 0x80, 0x12);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 3; i++) {
     cpu.cycle();
@@ -180,6 +196,7 @@ TEST_F(Chip8Test, BitWiseXorWorks) {
   load(Chip8::START, 0x60, 0xFB);
   load(Chip8::START + 2, 0x61, 0x2D);
   load(Chip8::START + 4, 0x80, 0x13);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 3; i++) {
     cpu.cycle();
@@ -193,6 +210,7 @@ TEST_F(Chip8Test, AddsAndStoresCarryInVf) {
   load(Chip8::START, 0x60, 0xFF);
   load(Chip8::START + 2, 0x61, 0x02);
   load(Chip8::START + 4, 0x80, 0x14);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 3; i++) {
     cpu.cycle();
@@ -207,6 +225,7 @@ TEST_F(Chip8Test, SubtractsAndStoresNotBorrowInVf) {
   load(Chip8::START, 0x60, 0x01);
   load(Chip8::START + 2, 0x61, 0xFF);
   load(Chip8::START + 4, 0x80, 0x15);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 3; i++) {
     cpu.cycle();
@@ -220,6 +239,7 @@ TEST_F(Chip8Test, SubtractsAndStoresNotBorrowInVf) {
 TEST_F(Chip8Test, ShiftsRegisterToTheRight) {
   load(Chip8::START, 0x60, 0xAD);
   load(Chip8::START + 2, 0x80, 0x06);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -232,6 +252,7 @@ TEST_F(Chip8Test, ReverseSubtractWorks) {
   load(Chip8::START, 0x60, 0xFF);
   load(Chip8::START + 2, 0x61, 0x01);
   load(Chip8::START + 4, 0x80, 0x17);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 3; i++) {
     cpu.cycle();
@@ -245,6 +266,7 @@ TEST_F(Chip8Test, ReverseSubtractWorks) {
 TEST_F(Chip8Test, ShiftsRegisterToTheLeft) {
   load(Chip8::START, 0x60, 0xAD);
   load(Chip8::START + 2, 0x80, 0x0E);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -257,6 +279,7 @@ TEST_F(Chip8Test, SkipNextIfNotEqualRegistersWorks) {
   load(Chip8::START, 0x60, 0xFF);
   load(Chip8::START + 2, 0x61, 0x01);
   load(Chip8::START + 4, 0x90, 0x10);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 3; i++) {
     cpu.cycle();
@@ -268,6 +291,7 @@ TEST_F(Chip8Test, SkipNextIfNotEqualRegistersWorks) {
 // loads the address into the I register
 TEST_F(Chip8Test, LoadsIFromAddressWorks) {
   load(Chip8::START, 0xAF, 0xFF);
+  cpu.load_into_memory(memory);
   cpu.cycle();
 
   EXPECT_EQ(cpu.get_I(), 0xFFF);
@@ -277,6 +301,7 @@ TEST_F(Chip8Test, LoadsIFromAddressWorks) {
 TEST_F(Chip8Test, JumpsOffRegistersWorks) {
   load(Chip8::START, 0x60, 0x20);
   load(Chip8::START + 2, 0xBF, 0x00);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -286,40 +311,77 @@ TEST_F(Chip8Test, JumpsOffRegistersWorks) {
 // generates a random number and ANDs it with the provided byte
 TEST_F(Chip8Test, RandomNumberAndByteWorks) {
   load(Chip8::START, 0xC0, 0x0F);
+  cpu.load_into_memory(memory);
   cpu.cycle();
 
   EXPECT_LE(cpu.get_register(0), 0x0F);
 }
 
-// TODO: DRAW FUNCTION TEST
+// draws an n byte sprite starting at (V_x, V_y), will wrap around
 TEST_F(Chip8Test, DrawUpdatesDisplayBufferProperly) {
-  // store 63 in v0
-  // store 31 in v1
-  // set A to v2
-  // run load sprite command with v2 - should set I to the location of A
-  // call function with 5 replacing N
-  // get the display_buffer back and check to see if it has the correct values
-
   load(Chip8::START, 0x60, 0x3F);
   load(Chip8::START + 2, 0x61, 0x1F);
   load(Chip8::START + 4, 0x62, 0x0A);
   load(Chip8::START + 6, 0xF2, 0x29);
   load(Chip8::START + 8, 0xD0, 0x15);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 5; i++) {
     cpu.cycle();
   }
 
-  const auto &display_buffer = cpu.get_display_buffer();
+  std::array<uint8_t, Chip8::WIDTH * Chip8::HEIGHT> expected{};
 
-  // lit up draw the exact same sprite again get back the display buffer, it
-  // should now be empty, but then the vf field should be set to 1.
+  /// Sprite A is 0xF0, 0x90, 0xF0, 0x90, 0x90
+  expected[31 * 64 + 0] = 1;
+  expected[31 * 64 + 1] = 1;
+  expected[31 * 64 + 2] = 1;
+  expected[31 * 64 + 63] = 1;
+
+  expected[0 * 64 + 2] = 1;
+  expected[0 * 64 + 63] = 1;
+
+  expected[1 * 64 + 0] = 1;
+  expected[1 * 64 + 1] = 1;
+  expected[1 * 64 + 2] = 1;
+  expected[1 * 64 + 63] = 1;
+
+  expected[2 * 64 + 2] = 1;
+  expected[2 * 64 + 63] = 1;
+
+  expected[3 * 64 + 2] = 1;
+  expected[3 * 64 + 63] = 1;
+
+  EXPECT_EQ(expected, cpu.get_display_buffer());
+}
+
+// draws the same sprite on top of itself, should all be empty, and vf = 1
+TEST_F(Chip8Test, DrawDetectsCollisonAndMarksVf) {
+  load(Chip8::START, 0x60, 0x3F);
+  load(Chip8::START + 2, 0x61, 0x1F);
+  load(Chip8::START + 4, 0x62, 0x0A);
+  load(Chip8::START + 6, 0xF2, 0x29);
+  load(Chip8::START + 8, 0xD0, 0x15);
+  load(Chip8::START + 10, 0xD0, 0x15);
+  cpu.load_into_memory(memory);
+
+  for (uint8_t i = 0; i < 6; i++) {
+    cpu.cycle();
+  }
+
+  auto const &display_buffer = cpu.get_display_buffer();
+  bool all_zeros = std::all_of(display_buffer.begin(), display_buffer.end(),
+                               [](uint8_t x) { return x == 0; });
+
+  EXPECT_TRUE(all_zeros);
+  EXPECT_EQ(cpu.get_register(0xF), 1);
 }
 
 // skips the next instruction if the key is pressed
 TEST_F(Chip8Test, SkipIfPressedKeyWorks) {
   cpu.set_keypad(0, true);
   load(Chip8::START, 0xE0, 0x9E);
+  cpu.load_into_memory(memory);
   cpu.cycle();
 
   EXPECT_EQ(cpu.get_PC(), Chip8::START + 4);
@@ -329,6 +391,7 @@ TEST_F(Chip8Test, SkipIfPressedKeyWorks) {
 TEST_F(Chip8Test, SkipIfNotPressedKeyWorks) {
   cpu.set_keypad(0, false);
   load(Chip8::START, 0xE0, 0xA1);
+  cpu.load_into_memory(memory);
   cpu.cycle();
 
   EXPECT_EQ(cpu.get_PC(), Chip8::START + 4);
@@ -338,6 +401,7 @@ TEST_F(Chip8Test, SkipIfNotPressedKeyWorks) {
 TEST_F(Chip8Test, LoadFromDelayTimerToRegisterWorks) {
   cpu.set_DT(5);
   load(Chip8::START, 0xF0, 0x07);
+  cpu.load_into_memory(memory);
   cpu.cycle();
 
   EXPECT_EQ(cpu.get_register(0), 0x05);
@@ -346,6 +410,7 @@ TEST_F(Chip8Test, LoadFromDelayTimerToRegisterWorks) {
 // stops the program until a button is pressed, stores it in a register
 TEST_F(Chip8Test, ExecutionStopsUntilKeyPressed) {
   load(Chip8::START, 0xF0, 0x0A);
+  cpu.load_into_memory(memory);
   cpu.cycle();
 
   EXPECT_EQ(cpu.get_PC(), Chip8::START);
@@ -359,6 +424,7 @@ TEST_F(Chip8Test, ExecutionStopsUntilKeyPressed) {
 TEST_F(Chip8Test, SetDelayTimerFromRegisterWorks) {
   load(Chip8::START, 0x60, 0xFF);
   load(Chip8::START + 2, 0xF0, 0x15);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -369,6 +435,7 @@ TEST_F(Chip8Test, SetDelayTimerFromRegisterWorks) {
 TEST_F(Chip8Test, SetSoundTimerFromRegisterWorks) {
   load(Chip8::START, 0x60, 0xFF);
   load(Chip8::START + 2, 0xF0, 0x18);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -380,6 +447,7 @@ TEST_F(Chip8Test, AddIAndRegisterAndStoreInI) {
   load(Chip8::START, 0xAA, 0xBA);
   load(Chip8::START + 2, 0x60, 0x02);
   load(Chip8::START + 4, 0xF0, 0x1E);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 3; i++) {
     cpu.cycle();
@@ -392,6 +460,7 @@ TEST_F(Chip8Test, AddIAndRegisterAndStoreInI) {
 TEST_F(Chip8Test, SetsIToSpriteAddress) {
   load(Chip8::START, 0x60, 0x0A);
   load(Chip8::START + 2, 0xF0, 0x29);
+  cpu.load_into_memory(memory);
   cpu.cycle();
   cpu.cycle();
 
@@ -405,6 +474,7 @@ TEST_F(Chip8Test, WriteBinaryCodedDecimalAtILocationFromRegister) {
   load(Chip8::START + 2, 0xA3, 0x00);
   load(Chip8::START + 4, 0xF0, 0x33);
   load(Chip8::START + 6, 0xF2, 0x65);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 4; i++) {
     cpu.cycle();
@@ -424,6 +494,7 @@ TEST_F(Chip8Test, StoreRegistersIntoMemoryWorks) {
   load(Chip8::START + 8, 0x60, 0x00);
   load(Chip8::START + 10, 0x61, 0x00);
   load(Chip8::START + 12, 0xF1, 0x65);
+  cpu.load_into_memory(memory);
 
   for (uint8_t i = 0; i < 7; i++) {
     cpu.cycle();
