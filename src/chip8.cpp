@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <random>
 
+/// @brief generates a random uint8_t, 0 - 255.
+/// @return the randomly generated uint8
 static uint8_t generate_random_uint8() {
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -108,6 +110,7 @@ void Chip8::rand(uint8_t register_num, uint8_t byte) {
   V[register_num] = generate_random_uint8() & byte;
 }
 
+// TODO: draw function
 void Chip8::draw(uint8_t register_x, uint8_t register_y, uint8_t nibble) {}
 
 void Chip8::skip_if_pressed(uint8_t register_num) {
@@ -122,9 +125,13 @@ void Chip8::skip_if_not_pressed(uint8_t register_num) {
   }
 }
 
+// TODO START
+
 void Chip8::load_from_delay_timer(uint8_t register_x) {}
 
 void Chip8::store_key_press(uint8_t register_num) {}
+
+// TODO END
 
 void Chip8::set_delay_timer(uint8_t register_num) { DT = V[register_num]; }
 
@@ -132,10 +139,27 @@ void Chip8::set_sound_timer(uint8_t register_num) { ST = V[register_num]; }
 
 void Chip8::add_I(uint8_t register_num) { I += V[register_num]; }
 
-void Chip8::load_sprite(uint8_t register_num) {}
+void Chip8::load_sprite(uint8_t register_num) {
+  constexpr uint8_t SPRITE_HEIGHT = 5;
+  I = V[register_num] * SPRITE_HEIGHT;
+}
 
-void Chip8::write_binary_coded_decimal(uint8_t register_num) {}
+void Chip8::write_binary_coded_decimal(uint8_t register_num) {
+  memory[I] = V[register_num] / 100;
+  memory[I + 1] = (V[register_num] / 10) % 10;
+  memory[I + 2] = V[register_num] % 10;
+}
 
-void Chip8::store_memory_from_registers(uint8_t register_num) {}
+void Chip8::store_memory_from_registers(uint8_t register_num) {
+  uint16_t ptr = I;
+  for (uint8_t i = 0; i <= register_num; i++) {
+    memory[ptr++] = V[i];
+  }
+}
 
-void Chip8::store_registers_from_memory(uint8_t register_num) {}
+void Chip8::store_registers_from_memory(uint8_t register_num) {
+  uint16_t ptr = I;
+  for (uint8_t i = 0; i <= register_num; i++) {
+    V[i] = memory[ptr++];
+  }
+}
