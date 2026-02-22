@@ -9,8 +9,8 @@
 /// @brief generates a random uint8_t, 0 - 255.
 /// @return the randomly generated uint8
 static uint8_t generate_random_uint8() {
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
   std::uniform_int_distribution<> dist(0, 0xFF);
   return dist(gen);
 }
@@ -29,7 +29,12 @@ void Chip8::load_into_memory(const std::array<uint8_t, MEMORY_SIZE> &memory) {
   this->memory = memory;
 }
 
-void Chip8::cycle() {}
+void Chip8::cycle() {
+  // fetch
+  // decode
+  // execute
+  // update program counter
+}
 
 void Chip8::load_font_data() {
   static const std::array<uint8_t, 80> fontset = {
