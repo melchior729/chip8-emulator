@@ -14,10 +14,10 @@ public:
   static constexpr int START = 0x200;
   static constexpr int WIDTH = 64;
   static constexpr int HEIGHT = 32;
-
-private:
   static constexpr int STACK_SIZE = 16;
   static constexpr int REGISTER_COUNT = 16;
+
+private:
   static constexpr int KEYPAD_OPTIONS = 16;
   static constexpr int SPRITE_WIDTH = 8;
   static constexpr int FREQUENCY = 432; // audio frequency
@@ -130,7 +130,7 @@ private:
   /// @param register_y the register number, y in V_y
   void subtract(uint8_t register_x, uint8_t register_y);
 
-  /// @brief stores V_x >> 1 in V_x
+  /// @brief stores V_x >> 1 in V_x, and the shifted bit in V_f
   /// 8XY6
   /// @param register_num the register number, x in V_x
   void shift_right(uint8_t register_num);
@@ -142,7 +142,7 @@ private:
   /// @param register_y the register number, y in V_y
   void reverse_subtract(uint8_t register_x, uint8_t register_y);
 
-  /// @brief stores V_x << 1 in V_x
+  /// @brief stores V_x << 1 in V_x, and the shifted bit in V_f
   /// 8XYE
   /// @param register_num the register number, x in V_x
   void shift_left(uint8_t register_num);
@@ -296,9 +296,9 @@ public:
   void set_ST(uint8_t value);
 
   /// @brief sets the keypad value to the status value
-  /// @param register_num 0-F the keypad register index
+  /// @param keypad_num 0-F the keypad button number
   /// @param status the state of the button pressed, 0 or 1
-  void set_keypad(uint8_t register_num, uint8_t status);
+  void set_keypad(uint8_t keypad_num, uint8_t status);
 
   /// @brief resets the state of the Chip8
   void reset();
