@@ -110,8 +110,31 @@ void Chip8::rand(uint8_t register_num, uint8_t byte) {
   V[register_num] = generate_random_uint8() & byte;
 }
 
-// TODO: draw function
-void Chip8::draw(uint8_t register_x, uint8_t register_y, uint8_t nibble) {}
+void Chip8::draw(uint8_t register_x, uint8_t register_y, uint8_t height) {
+  V[0xF] = 0;
+
+  for (uint8_t row = 0; row < height; row++) {
+    uint8_t byte = memory[I + row];
+    uint16_t y = (V[register_y] + row) % HEIGHT;
+    uint16_t offset = y * WIDTH;
+
+    for (uint8_t col = 0; col < SPRITE_WIDTH; col++) {
+      uint8_t bit = byte >> (SPRITE_WIDTH - col - 1) & 1;
+      if (!bit) {
+        continue;
+      }
+
+      uint16_t x = (V[register_x] + col) % WIDTH;
+      uint8_t *pixel = &display_buffer[x + offset];
+
+      if (*pixel) {
+        V[0xF] = 1;
+      }
+
+      *pixel ^= 1;
+    }
+  }
+}
 
 void Chip8::skip_if_pressed(uint8_t register_num) {
   if (keypad[V[register_num]]) {
@@ -125,13 +148,12 @@ void Chip8::skip_if_not_pressed(uint8_t register_num) {
   }
 }
 
-// TODO START
+void Chip8::load_from_delay_timer(uint8_t register_x) { V[register_x] = DT; }
 
-void Chip8::load_from_delay_timer(uint8_t register_x) {}
-
-void Chip8::store_key_press(uint8_t register_num) {}
-
-// TODO END
+void Chip8::store_key_press(uint8_t register_num) {
+  waiting_for_input = true;
+  target_register = register_num;
+}
 
 void Chip8::set_delay_timer(uint8_t register_num) { DT = V[register_num]; }
 
