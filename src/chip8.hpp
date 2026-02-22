@@ -19,6 +19,7 @@ private:
   static constexpr int STACK_SIZE = 16;
   static constexpr int REGISTER_COUNT = 16;
   static constexpr int KEYPAD_OPTIONS = 16;
+  static constexpr int SPRITE_WIDTH = 8;
   static constexpr int FREQUENCY = 432; // audio frequency
 
   std::array<uint16_t, STACK_SIZE> stack{};     // stores return addresses
@@ -28,13 +29,15 @@ private:
       display_buffer{}; // pixel values, on or off
   std::array<uint8_t, MEMORY_SIZE> memory{};
 
-  uint16_t I = 0;      // stores memory addresses, use 12 lowest bits
-  uint16_t PC = START; // currently executing address
-  uint8_t SP = 0;      // topmost level of the stack
-  uint8_t DT = 0;      // delay timer register
-  uint8_t ST = 0;      // sound timer register, play if > 0
+  uint16_t I = 0;                // stores memory addresses, use 12 lowest bits
+  uint16_t PC = START;           // currently executing address
+  uint8_t SP = 0;                // topmost level of the stack
+  uint8_t DT = 0;                // delay timer register
+  uint8_t ST = 0;                // sound timer register, play if > 0
+  uint8_t target_register = 0;   // target register for input
+  uint8_t waiting_for_input = 0; // program is waiting for input
 
-  /// @brief loads the font data into the memory
+  ///@brief loads the font data into the memory
   void load_font_data();
 
   /// @brief jumps to a routine at nnn
@@ -169,7 +172,8 @@ private:
   /// @brief displays n byte sprite starting at I at (V_x, V_y), V_F =
   /// collision.
   /// DXYN
-  /// @param register_x the register number, x in V_x
+  /// @param register_x the x in V_x that contains the x coordinate
+  /// @param register_y the y in V_y that contains the y coordinate
   /// @param register_y the register number, y in V_y
   /// @param nibble the height of the sprite to draw
   void draw(uint8_t register_x, uint8_t register_y, uint8_t nibble);
@@ -189,7 +193,9 @@ private:
   /// @param register_num the register number, x in V_x
   void load_from_delay_timer(uint8_t register_num);
 
-  /// @brief execution stops until a key is pressed; stored in V_x
+  /// @brief Enables waiting flag, and stores target register
+  /// Typically it is supposed to freeze until a press,
+  /// but that will be handled in the master class
   /// FX0A
   /// @param register_num the register number, x in V_x
   void store_key_press(uint8_t register_num);
