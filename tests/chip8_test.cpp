@@ -297,7 +297,7 @@ TEST_F(Chip8Test, LoadsIFromAddressWorks) {
   EXPECT_EQ(cpu.get_I(), 0xFFF);
 }
 
-// jumps to location nnn + V_x
+// jumps to location nnn + V_0
 TEST_F(Chip8Test, JumpsOffRegistersWorks) {
   load(Chip8::START, 0x60, 0x20);
   load(Chip8::START + 2, 0xBF, 0x00);
