@@ -1,5 +1,5 @@
 /// @file chip8.hpp
-/// @brief declaration of the chip8 class
+/// @brief declaration of the Chip8 class
 /// @author Abhay Manoj
 /// @date Feb 19 2026
 #pragma once
@@ -155,11 +155,10 @@ private:
   /// @param address 0nnn
   void load_I(uint16_t address);
 
-  /// @brief jumps to location nnn + V_x
+  /// @brief jumps to location nnn + V_0
   /// BNNN
-  /// @param register_num the register number, x in V_x
   /// @param address 0nnn
-  void jump_off_register(uint8_t register_num, uint16_t address);
+  void jump_off_register(uint16_t address);
 
   /// @brief generates random byte and ANDed with provided byte, stored in V_x
   /// CXNN
@@ -267,7 +266,7 @@ public:
   uint16_t get_I() const;
 
   /// @brief returns the content of the program counter register
-  /// @return the content of the program counter reigster
+  /// @return the content of the program counter register
   uint16_t get_PC() const;
 
   /// @brief returns the content of the stack pointer register
@@ -279,7 +278,7 @@ public:
   uint8_t get_DT() const;
 
   /// @brief sets the delay timer register to the provided value
-  /// @param the value to set
+  /// @param value the value to set
   void set_DT(uint8_t value);
 
   /// @brief returns the content of the sound timer register
@@ -287,7 +286,7 @@ public:
   uint8_t get_ST() const;
 
   /// @brief sets the sound timer register to the provided value
-  /// @param the value to set
+  /// @param value the value to set
   void set_ST(uint8_t value);
 
   /// @brief sets the keypad value to the status value
