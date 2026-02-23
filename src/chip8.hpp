@@ -235,6 +235,11 @@ private:
   /// @param register_num the register number
   void store_registers_from_memory(uint8_t register_num);
 
+  /// @brief
+  uint16_t fetch();
+
+  void decode_and_execute(uint16_t instruction);
+
 public:
   /// @brief default constructor, does not have defined memory
   Chip8();
@@ -283,17 +288,17 @@ public:
   /// @return the content of the delay time register
   uint8_t get_DT() const;
 
-  /// @brief sets the delay timer register to the provided value
-  /// @param value the value to set
+  /// @brief sets the delay timer register to the value
+  /// @param value the value to set it to
   void set_DT(uint8_t value);
 
   /// @brief returns the content of the sound timer register
   /// @return the content of the sound timer register
   uint8_t get_ST() const;
 
-  /// @brief sets the sound timer register to the provided value
-  /// @param value the value to set
-  void set_ST(uint8_t value);
+  /// @brief sets the sound timer register to content of V_x
+  /// @param register_num the register number, x in V_x
+  void set_ST(uint8_t register_num);
 
   /// @brief sets the keypad value to the status value
   /// @param keypad_num 0-F the keypad button number
