@@ -3,7 +3,9 @@
 /// @author Abhay Manoj
 /// @date Feb 21 2026
 #include "chip8.hpp"
+#include <algorithm>
 #include <cstdint>
+#include <iterator>
 #include <random>
 
 /// @brief generates a random uint8_t, 0 - 255.
@@ -15,29 +17,36 @@ static uint8_t generate_random_uint8() {
   return dist(gen);
 }
 
-Chip8::Chip8() {
-  memory.fill(0);
-  load_font_data();
-}
+Chip8::Chip8() { reset(); }
 
 Chip8::Chip8(const std::array<uint8_t, MEMORY_SIZE> &memory) {
+  reset();
   load_into_memory(memory);
   load_font_data();
 }
 
 void Chip8::load_into_memory(const std::array<uint8_t, MEMORY_SIZE> &memory) {
-  this->memory = memory;
+  std::copy(memory.begin() + START, memory.end(), this->memory.begin() + 0x200);
 }
 
 void Chip8::cycle() {
-  // fetch
-  // decode
-  // execute
-  // update program counter
+  auto key_pressed = std::ranges::find(keypad, true);
+  if (key_pressed != keypad.end()) {
+    V[target_register] = std::ranges::distance(keypad.begin(), key_pressed);
+    waiting_for_input = false;
+  }
+
+  if (waiting_for_input) {
+    return;
+  }
+
+  uint16_t instruction = fetch();
+  PC += 2;
+  decode_and_execute(instruction);
 }
 
 void Chip8::load_font_data() {
-  static const std::array<uint8_t, 80> fontset = {
+  static const std::array<uint8_t, 80> font = {
       0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
       0x20, 0x60, 0x20, 0x20, 0x70, // 1
       0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -56,7 +65,7 @@ void Chip8::load_font_data() {
       0xF0, 0x80, 0xF0, 0x80, 0x80  // F
   };
 
-  std::copy(fontset.begin(), fontset.end(), memory.begin());
+  std::copy(font.begin(), font.end(), memory.begin());
 }
 
 void Chip8::sys(const uint16_t address) { PC = address & 0x0FFF; }
@@ -71,7 +80,7 @@ void Chip8::ret() {
 void Chip8::jump(const uint16_t address) { PC = address & 0x0FFF; }
 
 void Chip8::call(const uint16_t address) {
-  stack[SP] = PC + 2;
+  stack[SP] = PC;
   PC = address & 0x0FFF;
   SP++;
 }
@@ -223,16 +232,16 @@ void Chip8::write_binary_coded_decimal(uint8_t register_num) {
 }
 
 void Chip8::store_memory_from_registers(uint8_t register_num) {
-  uint16_t ptr = I;
+  uint16_t address = I;
   for (uint8_t i = 0; i <= register_num; i++) {
-    memory[ptr++] = V[i];
+    memory[address++] = V[i];
   }
 }
 
 void Chip8::store_registers_from_memory(uint8_t register_num) {
-  uint16_t ptr = I;
+  uint16_t address = I;
   for (uint8_t i = 0; i <= register_num; i++) {
-    V[i] = memory[ptr++];
+    V[i] = memory[address++];
   }
 }
 
@@ -265,10 +274,146 @@ void Chip8::set_DT(uint8_t value) { DT = value; }
 
 uint8_t Chip8::get_ST() const { return ST; }
 
-void Chip8::set_ST(uint8_t value) { ST = value; }
+void Chip8::set_ST(uint8_t register_num) { ST = V[register_num]; }
 
 void Chip8::set_keypad(uint8_t keypad_num, uint8_t status) {
   keypad[keypad_num] = status;
+}
+
+uint16_t Chip8::fetch() {
+  constexpr uint8_t SHIFT_AMOUNT = 8;
+  uint16_t instruction = (memory[PC] << SHIFT_AMOUNT) | (memory[PC + 1]);
+  return instruction;
+}
+
+void Chip8::decode_and_execute(uint16_t instruction) {
+  uint8_t type = (instruction & 0xF000) >> 12; // first nibble
+  uint8_t x = (instruction & 0xF00) >> 8;      // second nibble
+  uint8_t y = (instruction & 0xF0) >> 4;       // third nibble
+  uint8_t n = instruction & 0xF;               // final nibble
+  uint8_t nn = instruction & 0xFF;             // second byte
+  uint16_t nnn = instruction & 0xFFF;          // last 12 bits
+
+  switch (type) {
+  case 0x0:
+    if (nn == 0xE0) {
+      cls();
+    } else if (nn == 0xEE) {
+      ret();
+    } else {
+      sys(nnn);
+    }
+    break;
+  case 0x1:
+    jump(nnn);
+    break;
+  case 0x2:
+    call(nnn);
+    break;
+  case 0x3:
+    skip_next_if_equal_byte(x, nn);
+    break;
+  case 0x4:
+    skip_next_if_not_equal_byte(x, nn);
+    break;
+  case 0x5:
+    skip_next_if_equal_registers(x, y);
+    break;
+  case 0x6:
+    load_from_byte(x, nn);
+    break;
+  case 0x7:
+    add(x, nn);
+    break;
+  case 0x8:
+    switch (n) {
+    case 0x0:
+      load_from_register_to_register(x, y);
+      break;
+    case 0x1:
+      bitwise_or(x, y);
+      break;
+    case 0x2:
+      bitwise_and(x, y);
+      break;
+    case 0x3:
+      bitwise_xor(x, y);
+      break;
+    case 0x4:
+      add_and_store_carry(x, y);
+      break;
+    case 0x5:
+      subtract(x, y);
+      break;
+    case 0x6:
+      shift_right(x);
+      break;
+    case 0x7:
+      reverse_subtract(x, y);
+      break;
+    case 0xE:
+      shift_left(x);
+      break;
+    }
+    break;
+  case 0x9:
+    skip_next_if_not_equal_registers(x, y);
+    break;
+  case 0xA:
+    load_I(nnn);
+    break;
+  case 0xB:
+    jump_off_register(nnn);
+    break;
+  case 0xD:
+    draw(x, y, n);
+    break;
+  case 0xE:
+    if (n == 0xE) {
+      skip_if_pressed(x);
+    } else {
+      skip_if_not_pressed(x);
+    }
+    break;
+  case 0xF:
+    switch (n) {
+    case 0x3:
+      write_binary_coded_decimal(x);
+      break;
+    case 0x5:
+      switch (y) {
+      case 0x1:
+        set_delay_timer(x);
+        break;
+      case 0x5:
+        store_memory_from_registers(x);
+        break;
+      case 0x6:
+        store_registers_from_memory(x);
+        break;
+      }
+      break;
+    case 0x7:
+      load_from_delay_timer(x);
+      break;
+    case 0x8:
+      set_sound_timer(x);
+      break;
+    case 0x9:
+      load_sprite(x);
+      break;
+    case 0xA:
+      store_key_press(x);
+      break;
+    case 0xE:
+      add_I(x);
+      break;
+    case 0xF:
+      add_I(x);
+      break;
+    }
+    break;
+  }
 }
 
 void Chip8::reset() {

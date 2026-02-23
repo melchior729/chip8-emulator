@@ -13,8 +13,8 @@ protected:
   Chip8 cpu;
   std::array<uint8_t, Chip8::MEMORY_SIZE> memory{};
 
-  /// @brief clears memory to all 0s
-  void SetUp() override { memory.fill(0); }
+  /// @brief resets the cpu
+  void SetUp() override { cpu.reset(); }
 
   /// @brief loads a command into the memory
   /// @param address the address to load the bytes to
@@ -326,6 +326,12 @@ TEST_F(Chip8Test, DrawUpdatesDisplayBufferProperly) {
   load(Chip8::START + 8, 0xD0, 0x15);
   cpu.load_into_memory(memory);
 
+  // r0 = 3f
+  // r1 = 1f
+  // r2 = a
+  // puts I at the content in r2 * 5 -> puts I at beginning of sprite
+  // draws A, starting at 63, 31 and it is 5 bytes tall
+  //
   for (uint8_t i = 0; i < 5; i++) {
     cpu.cycle();
   }
@@ -414,6 +420,9 @@ TEST_F(Chip8Test, ExecutionStopsUntilKeyPressed) {
   cpu.cycle();
 
   EXPECT_EQ(cpu.get_PC(), Chip8::START);
+
+  load(Chip8::START + 2, 0x61, 0x0A);
+  cpu.load_into_memory(memory);
   cpu.set_keypad(0xF, 1);
   cpu.cycle();
 
