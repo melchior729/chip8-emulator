@@ -193,12 +193,12 @@ private:
   /// @param register_num the register number, x in V_x
   void load_from_delay_timer(uint8_t register_num);
 
-  /// @brief Enables waiting flag, and stores target register
-  /// Typically it is supposed to freeze until a press,
-  /// but that will be handled in the master class
+  /// @brief Enables waiting flag, and stores target register,
+  /// if a key from a previous call was not pressed
   /// FX0A
   /// @param register_num the register number, x in V_x
-  void store_key_press(uint8_t register_num);
+  /// @param key_pressed if a key was pressed
+  void store_key_press(uint8_t register_num, uint8_t key_pressed);
 
   /// @brief sets the value of the delay timer to V_x
   /// FX15
@@ -235,10 +235,14 @@ private:
   /// @param register_num the register number
   void store_registers_from_memory(uint8_t register_num);
 
-  /// @brief
+  /// @brief gets the 2 bytes at the program counter and ORS them
+  /// @return the 2 bytes ORed together
   uint16_t fetch();
 
-  void decode_and_execute(uint16_t instruction);
+  /// @brief deocdes the instruction and executes it
+  /// @param instruction the instruction to operate on
+  /// @param key_pressed if a key was pressed
+  void decode_and_execute(uint16_t instruction, uint8_t key_pressed);
 
 public:
   /// @brief default constructor, does not have defined memory
