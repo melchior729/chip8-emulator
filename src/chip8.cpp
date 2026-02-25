@@ -288,7 +288,7 @@ void Chip8::set_keypad(uint8_t keypad_num, uint8_t status) {
   keypad[keypad_num] = status;
 }
 
-uint16_t Chip8::fetch() {
+uint16_t Chip8::fetch() const {
   constexpr uint8_t SHIFT_AMOUNT = 8;
   uint16_t instruction = (memory[PC] << SHIFT_AMOUNT) | (memory[PC + 1]);
   return instruction;
@@ -362,6 +362,7 @@ void Chip8::decode_and_execute(uint16_t instruction, uint8_t key_pressed) {
     case 0xE:
       shift_left(x);
       break;
+    default:;
     }
     break;
   case 0x9:
@@ -399,6 +400,7 @@ void Chip8::decode_and_execute(uint16_t instruction, uint8_t key_pressed) {
       case 0x6:
         store_registers_from_memory(x);
         break;
+      default: ;
       }
       break;
     case 0x7:
@@ -419,8 +421,10 @@ void Chip8::decode_and_execute(uint16_t instruction, uint8_t key_pressed) {
     case 0xF:
       add_I(x);
       break;
+    default:;
     }
     break;
+  default:;
   }
 }
 
