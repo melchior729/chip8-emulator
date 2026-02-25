@@ -4,6 +4,7 @@
 /// @date Feb 21 2026
 #include "chip8.hpp"
 #include <algorithm>
+#include <cassert>
 #include <cstdint>
 #include <iterator>
 #include <random>
@@ -26,7 +27,7 @@ Chip8::Chip8(const std::array<uint8_t, MEMORY_SIZE> &memory) {
 }
 
 void Chip8::load_into_memory(const std::array<uint8_t, MEMORY_SIZE> &memory) {
-  std::copy(memory.begin() + START, memory.end(), this->memory.begin() + 0x200);
+  std::copy(memory.begin() + START, memory.end(), this->memory.begin() + START);
 }
 
 void Chip8::cycle() {
@@ -79,6 +80,7 @@ void Chip8::sys(const uint16_t address) { PC = address & 0x0FFF; }
 void Chip8::cls() { display_buffer.fill(0); }
 
 void Chip8::ret() {
+  assert(SP > 0);
   SP--;
   PC = stack[SP];
 }
@@ -86,6 +88,7 @@ void Chip8::ret() {
 void Chip8::jump(const uint16_t address) { PC = address & 0x0FFF; }
 
 void Chip8::call(const uint16_t address) {
+  assert(SP < STACK_SIZE);
   stack[SP] = PC;
   PC = address & 0x0FFF;
   SP++;
@@ -374,6 +377,9 @@ void Chip8::decode_and_execute(uint16_t instruction, uint8_t key_pressed) {
   case 0xB:
     jump_off_register(nnn);
     break;
+  case 0xC:
+    rand(x, nn);
+    break;
   case 0xD:
     draw(x, y, n);
     break;
@@ -400,7 +406,7 @@ void Chip8::decode_and_execute(uint16_t instruction, uint8_t key_pressed) {
       case 0x6:
         store_registers_from_memory(x);
         break;
-      default: ;
+      default:;
       }
       break;
     case 0x7:
