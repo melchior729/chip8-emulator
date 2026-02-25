@@ -237,9 +237,9 @@ private:
 
   /// @brief gets the 2 bytes at the program counter and ORS them
   /// @return the 2 bytes ORed together
-  uint16_t fetch();
+  uint16_t fetch() const;
 
-  /// @brief deocdes the instruction and executes it
+  /// @brief decodes the instruction and executes it
   /// @param instruction the instruction to operate on
   /// @param key_pressed if a key was pressed
   void decode_and_execute(uint16_t instruction, uint8_t key_pressed);
