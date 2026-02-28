@@ -7,6 +7,7 @@
 #include <array>
 #include <cstdint>
 
+/// @brief represents the chip8 virtual machine
 class Chip8 {
 public:
   // hardware constants
