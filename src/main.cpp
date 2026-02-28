@@ -5,11 +5,14 @@
 #include "chip8.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
+#include <cstddef>
+#include <cstdint>
 
-static constexpr int SCALING_FACTOR = 16;
-static constexpr int WINDOW_HEIGHT = Chip8::HEIGHT * SCALING_FACTOR;
-static constexpr int WINDOW_WIDTH = Chip8::WIDTH * SCALING_FACTOR;
+static constexpr size_t SCALING_FACTOR = 16;
+static constexpr size_t WINDOW_HEIGHT = Chip8::HEIGHT * SCALING_FACTOR;
+static constexpr size_t WINDOW_WIDTH = Chip8::WIDTH * SCALING_FACTOR;
 
 /// @brief contains the window, renderer, and cpu
 struct AppState {
@@ -54,47 +57,31 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 /// @brief draws the content of the display buffer to the SDL window
 /// @param appstate contains the current appstate
 static void draw_to_screen(void *appstate) {
+
   AppState *state = static_cast<AppState *>(appstate);
-  // const auto &display_buffer = state->cpu.get_display_buffer();
+  const auto &display_buffer = state->cpu.get_display_buffer();
+  std::array<SDL_FRect, Chip8::WIDTH * Chip8::HEIGHT> pixels;
+  size_t pixel_count = 0;
 
-  std::array<uint8_t, 64 * 32> display_buffer{};
-  display_buffer.fill(0);
-
-  // Solid 10x6 rectangle at top-left
-  for (int y = 0; y < 6; ++y) {
-    for (int x = 0; x < 10; ++x) {
-      display_buffer[y * 64 + x] = 1;
-    }
-  }
-
-  // Diagonal line starting at (20, 10)
-  for (int k = 0; k < 5; ++k) {
-    int x = 20 + k;
-    int y = 10 + k;
-    display_buffer[y * 64 + x] = 1;
-  }
-
-  SDL_SetRenderDrawColor(state->renderer, 0xFF, 0xFF, 0xFF, 0xFF);
   for (size_t i = 0; i < Chip8::HEIGHT; i++) {
+    size_t offset = i * Chip8::WIDTH;
     for (size_t j = 0; j < Chip8::WIDTH; j++) {
-      if (!display_buffer[j + i * Chip8::WIDTH]) {
-        continue;
-      }
-
-      SDL_FRect pixel(j * Chip8::WIDTH * SCALING_FACTOR,
-                      i * Chip8::HEIGHT * SCALING_FACTOR, SCALING_FACTOR,
+      if (display_buffer[j + offset]) {
+        pixels[pixel_count++] =
+            SDL_FRect(j * SCALING_FACTOR, i * SCALING_FACTOR, SCALING_FACTOR,
                       SCALING_FACTOR);
-
-      SDL_RenderRect(state->renderer, &pixel);
+      }
     }
   }
+
+  SDL_RenderFillRects(state->renderer, pixels.data(), pixel_count);
 }
 
 /// @brief performs one 'tick' of the application
 /// @param appstate contains the current appstate
 SDL_AppResult SDL_AppIterate(void *appstate) {
   AppState *state = static_cast<AppState *>(appstate);
-  SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, 0xFF);
+  SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(state->renderer);
   draw_to_screen(appstate);
   SDL_RenderPresent(state->renderer);
