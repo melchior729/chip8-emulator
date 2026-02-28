@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
-#include <iterator>
 #include <random>
 
 /// @brief generates a random uint8_t, 0 - 255.
