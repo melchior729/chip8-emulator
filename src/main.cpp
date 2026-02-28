@@ -7,8 +7,6 @@
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
-#include <cstddef>
-#include <cstdint>
 
 static constexpr size_t SCALING_FACTOR = 16;
 static constexpr size_t WINDOW_HEIGHT = Chip8::HEIGHT * SCALING_FACTOR;
