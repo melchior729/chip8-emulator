@@ -11,7 +11,11 @@ add_library(chip8lib src/chip8.cpp)
 target_include_directories(chip8lib PUBLIC src)
 
 add_executable(chip8 src/main.cpp)
-target_include_directories(chip8 PRIVATE chip8lib)
+target_link_libraries(chip8 PRIVATE chip8lib)
+
+find_package(SDL3 REQUIRED)
+target_link_libraries(chip8 PRIVATE SDL3::SDL3)
+target_compile_definitions(chip8 PRIVATE SDL_MAIN_USE_CALLBACKS)
 
 enable_testing()
 add_subdirectory(tests)
