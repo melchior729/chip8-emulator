@@ -26,7 +26,7 @@ Chip8::Chip8(const std::array<uint8_t, MEMORY_SIZE> &memory) {
 }
 
 void Chip8::load_into_memory(const std::array<uint8_t, MEMORY_SIZE> &memory) {
-  std::copy(memory.begin() + START, memory.end(), this->memory.begin() + START);
+  std::copy(memory.begin(), memory.end() - START, this->memory.begin() + START);
 }
 
 void Chip8::cycle() {
