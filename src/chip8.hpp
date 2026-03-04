@@ -17,11 +17,11 @@ public:
   static constexpr int HEIGHT = 32;
   static constexpr int STACK_SIZE = 16;
   static constexpr int REGISTER_COUNT = 16;
+  static constexpr int FREQUENCY = 432;
 
 private:
   static constexpr int KEYPAD_OPTIONS = 16;
   static constexpr int SPRITE_WIDTH = 8;
-  static constexpr int FREQUENCY = 432; // audio frequency
 
   std::array<uint16_t, STACK_SIZE> stack{};     // stores return addresses
   std::array<uint8_t, REGISTER_COUNT> V{};      // registers 0 - F
@@ -301,9 +301,9 @@ public:
   /// @return the content of the sound timer register
   uint8_t get_ST() const;
 
-  /// @brief sets the sound timer register to content of V_x
-  /// @param register_num the register number, x in V_x
-  void set_ST(uint8_t register_num);
+  /// @brief sets the sound timer register to the value
+  /// @param value the value to set the register to
+  void set_ST(uint8_t value);
 
   /// @brief sets the keypad value to the status value
   /// @param keypad_num 0-F the keypad button number
