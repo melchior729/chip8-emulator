@@ -4,21 +4,31 @@
 /// @date Feb 27 2026
 #include "chip8.hpp"
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_audio.h>
+#include <SDL3/SDL_error.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
+#include <cmath>
 #include <fstream>
+#include <iostream>
 #include <memory>
 
 static constexpr size_t SCALING_FACTOR = 16;
 static constexpr size_t WINDOW_HEIGHT = Chip8::HEIGHT * SCALING_FACTOR;
 static constexpr size_t WINDOW_WIDTH = Chip8::WIDTH * SCALING_FACTOR;
+static constexpr size_t FRAME_RATE = 60;
+static constexpr size_t SAMPLE_RATE = 48000;
+static constexpr size_t SAMPLES = SAMPLE_RATE / FRAME_RATE;
+static constexpr size_t CYCLES_PER_FRAME = 10;
 
 /// @brief contains the window, renderer, and cpu
 struct AppState {
   SDL_Window *window = nullptr;
   SDL_Renderer *renderer = nullptr;
+  float audio_data[SAMPLES];
+  SDL_AudioStream *stream = nullptr;
   std::unique_ptr<Chip8> cpu;
 };
 
@@ -38,6 +48,32 @@ SDL_AppResult load_rom(void *appstate, const std::string &file_path) {
   return SDL_APP_CONTINUE;
 }
 
+/// @brief initializes the audio for the appstate
+/// @param appstate contains the current appstate
+bool setup_audio(void *appstate) {
+  AppState *state = static_cast<AppState *>(appstate);
+  SDL_AudioSpec spec;
+  spec.format = SDL_AUDIO_F32;
+  spec.channels = 1;
+  spec.freq = SAMPLE_RATE;
+  state->stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
+                                            &spec, nullptr, nullptr);
+
+  if (state->stream == NULL) {
+    return false;
+  }
+
+  int phase = 0;
+  for (size_t i = 0; i < SAMPLES; i++) {
+    float t = (float)phase / SAMPLE_RATE;
+    state->audio_data[i] =
+        fmod(t * Chip8::FREQUENCY, 1.0f) < 0.5f ? 0.3f : -0.3f;
+    phase++;
+  }
+
+  return true;
+}
+
 /// @brief initializes SDL, the window and the renderer
 /// @param appstate contains the current appstate
 /// @param argc the number of arguments
@@ -45,12 +81,12 @@ SDL_AppResult load_rom(void *appstate, const std::string &file_path) {
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   constexpr int NUM_ARGS = 2;
 
-  if (!SDL_Init(SDL_INIT_VIDEO)) {
+  if (argc != NUM_ARGS) {
+    SDL_Log("Usage: %s <rom path>", argv[0]);
     return SDL_APP_FAILURE;
   }
 
-  if (argc != NUM_ARGS) {
-    SDL_Log("Usage: %s <rom path>", argv[0]);
+  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
     return SDL_APP_FAILURE;
   }
 
@@ -70,6 +106,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   }
 
+  if (!setup_audio(appstate)) {
+    return SDL_APP_FAILURE;
+  }
+
+  SDL_SetRenderVSync(state->renderer, 1);
   return SDL_APP_CONTINUE;
 }
 
@@ -113,8 +154,23 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   AppState *state = static_cast<AppState *>(appstate);
   SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(state->renderer);
+  uint8_t delay_register = state->cpu->get_DT();
+  uint8_t sound_register = state->cpu->get_ST();
+
+  if (delay_register > 0) {
+    state->cpu->set_DT(delay_register - 1);
+  }
+
+  if (sound_register != 0 && state->stream != nullptr) {
+    SDL_PutAudioStreamData(state->stream, state->audio_data,
+                           sizeof(state->audio_data));
+    state->cpu->set_ST(state->cpu->get_ST() - 1);
+  }
+
+  for (size_t i = 0; i < CYCLES_PER_FRAME; i++) {
+    state->cpu->cycle();
+  }
   draw_to_screen(appstate);
-  state->cpu->cycle();
   SDL_RenderPresent(state->renderer);
   return SDL_APP_CONTINUE;
 }
@@ -131,6 +187,7 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   AppState *state = static_cast<AppState *>(appstate);
   SDL_DestroyRenderer(state->renderer);
   SDL_DestroyWindow(state->window);
+  SDL_DestroyAudioStream(state->stream);
   delete state;
 
   SDL_Quit();
