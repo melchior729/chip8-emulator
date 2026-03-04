@@ -284,7 +284,7 @@ void Chip8::set_DT(uint8_t value) { DT = value; }
 
 uint8_t Chip8::get_ST() const { return ST; }
 
-void Chip8::set_ST(uint8_t register_num) { ST = V[register_num]; }
+void Chip8::set_ST(uint8_t value) { ST = value; }
 
 void Chip8::set_keypad(uint8_t keypad_num, uint8_t status) {
   keypad[keypad_num] = status;
