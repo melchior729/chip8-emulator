@@ -33,10 +33,9 @@ struct AppState {
 };
 
 /// @brief loads the rom from the system into the appstate
-/// @param appstate contains the current appstate
+/// @param state contains the current appstate
 /// @param file_path the path of the rom to load
-SDL_AppResult load_rom(void *appstate, const std::string &file_path) {
-  AppState *state = static_cast<AppState *>(appstate);
+SDL_AppResult load_rom(AppState *state, const std::string &file_path) {
   std::ifstream file(file_path, std::ios::binary);
   if (!file) {
     return SDL_APP_FAILURE;
@@ -50,8 +49,7 @@ SDL_AppResult load_rom(void *appstate, const std::string &file_path) {
 
 /// @brief initializes the audio for the appstate
 /// @param appstate contains the current appstate
-bool setup_audio(void *appstate) {
-  AppState *state = static_cast<AppState *>(appstate);
+bool setup_audio(AppState *state) {
   SDL_AudioSpec spec;
   spec.format = SDL_AUDIO_F32;
   spec.channels = 1;
@@ -102,14 +100,15 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   }
 
-  if (load_rom(*appstate, argv[1]) != SDL_APP_CONTINUE) {
+  if (load_rom(state, argv[1]) != SDL_APP_CONTINUE) {
     return SDL_APP_FAILURE;
   }
 
-  if (!setup_audio(appstate)) {
+  if (!setup_audio(state)) {
     return SDL_APP_FAILURE;
   }
 
+  SDL_ResumeAudioStreamDevice(state->stream);
   SDL_SetRenderVSync(state->renderer, 1);
   return SDL_APP_CONTINUE;
 }
@@ -126,9 +125,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 }
 
 /// @brief draws the content of the display buffer to the SDL window
-/// @param appstate contains the current appstate
-static void draw_to_screen(void *appstate) {
-  AppState *state = static_cast<AppState *>(appstate);
+/// @param state contains the current appstate
+static void draw_to_screen(AppState *state) {
   const auto &display_buffer = state->cpu->get_display_buffer();
   std::array<SDL_FRect, Chip8::WIDTH * Chip8::HEIGHT> pixels;
   size_t pixel_count = 0;
@@ -152,8 +150,10 @@ static void draw_to_screen(void *appstate) {
 /// @param appstate contains the current appstate
 SDL_AppResult SDL_AppIterate(void *appstate) {
   AppState *state = static_cast<AppState *>(appstate);
-  SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-  SDL_RenderClear(state->renderer);
+  for (size_t i = 0; i < CYCLES_PER_FRAME; i++) {
+    state->cpu->cycle();
+  }
+
   uint8_t delay_register = state->cpu->get_DT();
   uint8_t sound_register = state->cpu->get_ST();
 
@@ -161,16 +161,22 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state->cpu->set_DT(delay_register - 1);
   }
 
-  if (sound_register != 0 && state->stream != nullptr) {
-    SDL_PutAudioStreamData(state->stream, state->audio_data,
-                           sizeof(state->audio_data));
+  if (sound_register > 0) {
     state->cpu->set_ST(state->cpu->get_ST() - 1);
+    if (state->stream != nullptr) {
+      if (SDL_GetAudioStreamQueued(state->stream) <
+          (int)sizeof(state->audio_data)) {
+        SDL_PutAudioStreamData(state->stream, state->audio_data,
+                               sizeof(state->audio_data));
+      }
+    }
+  } else {
+    SDL_ClearAudioStream(state->stream);
   }
 
-  for (size_t i = 0; i < CYCLES_PER_FRAME; i++) {
-    state->cpu->cycle();
-  }
-  draw_to_screen(appstate);
+  SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+  SDL_RenderClear(state->renderer);
+  draw_to_screen(state);
   SDL_RenderPresent(state->renderer);
   return SDL_APP_CONTINUE;
 }
