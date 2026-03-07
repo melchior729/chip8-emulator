@@ -5,7 +5,6 @@
 #include "chip8.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
-#include <SDL3/SDL_error.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_rect.h>
@@ -106,7 +105,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   }
 
-  if (!setup_audio(appstate)) {
+  if (!setup_audio(*appstate)) {
     return SDL_APP_FAILURE;
   }
 
@@ -122,6 +121,66 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     return SDL_APP_SUCCESS;
   }
 
+  if (appstate == nullptr) {
+    return SDL_APP_CONTINUE;
+  }
+
+  AppState *state = static_cast<AppState *>(appstate);
+  auto &cpu = state->cpu;
+
+  if (event->type == SDL_EVENT_KEY_DOWN || event->type == SDL_EVENT_KEY_UP) {
+    bool is_pressed = event->type == SDL_EVENT_KEY_DOWN;
+    switch (event->key.key) {
+    case SDLK_1:
+      cpu->set_keypad(1, is_pressed);
+      break;
+    case SDLK_2:
+      cpu->set_keypad(2, is_pressed);
+      break;
+    case SDLK_3:
+      cpu->set_keypad(3, is_pressed);
+      break;
+    case SDLK_4:
+      cpu->set_keypad(0xC, is_pressed);
+      break;
+    case SDLK_Q:
+      cpu->set_keypad(4, is_pressed);
+      break;
+    case SDLK_W:
+      cpu->set_keypad(5, is_pressed);
+      break;
+    case SDLK_E:
+      cpu->set_keypad(6, is_pressed);
+      break;
+    case SDLK_R:
+      cpu->set_keypad(0xD, is_pressed);
+      break;
+    case SDLK_A:
+      cpu->set_keypad(7, is_pressed);
+      break;
+    case SDLK_S:
+      cpu->set_keypad(8, is_pressed);
+      break;
+    case SDLK_D:
+      cpu->set_keypad(9, is_pressed);
+      break;
+    case SDLK_F:
+      cpu->set_keypad(0xE, is_pressed);
+      break;
+    case SDLK_Z:
+      cpu->set_keypad(0xA, is_pressed);
+      break;
+    case SDLK_X:
+      cpu->set_keypad(0, is_pressed);
+      break;
+    case SDLK_C:
+      cpu->set_keypad(0xB, is_pressed);
+      break;
+    case SDLK_V:
+      cpu->set_keypad(0xF, is_pressed);
+      break;
+    }
+  }
   return SDL_APP_CONTINUE;
 }
 
