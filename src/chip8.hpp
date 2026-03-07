@@ -198,8 +198,7 @@ private:
   /// if a key from a previous call was not pressed
   /// FX0A
   /// @param register_num the register number, x in V_x
-  /// @param key_pressed if a key was pressed
-  void store_key_press(uint8_t register_num, uint8_t key_pressed);
+  void store_key_press(uint8_t register_num);
 
   /// @brief sets the value of the delay timer to V_x
   /// FX15
@@ -242,8 +241,7 @@ private:
 
   /// @brief decodes the instruction and executes it
   /// @param instruction the instruction to operate on
-  /// @param key_pressed if a key was pressed
-  void decode_and_execute(uint16_t instruction, uint8_t key_pressed);
+  void decode_and_execute(uint16_t instruction);
 
 public:
   /// @brief default constructor, does not have defined memory
