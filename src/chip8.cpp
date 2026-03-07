@@ -30,25 +30,18 @@ void Chip8::load_into_memory(const std::array<uint8_t, MEMORY_SIZE> &memory) {
 }
 
 void Chip8::cycle() {
-  auto pressed_it = std::ranges::find(keypad, true);
-  uint8_t key_pressed = false;
-  if (pressed_it != keypad.end()) {
-    V[target_register] = std::ranges::distance(keypad.begin(), pressed_it);
-    waiting_for_input = false;
-    key_pressed = true;
-  }
-
   if (waiting_for_input) {
-    PC -= 2;
-    return;
+    auto pressed_it = std::ranges::find(keypad, true);
+    if (pressed_it != keypad.end()) {
+      V[target_register] = static_cast<uint8_t>(
+          std::ranges::distance(keypad.begin(), pressed_it));
+      waiting_for_input = false;
+    }
   }
 
   uint16_t instruction = fetch();
   PC += 2;
-  decode_and_execute(instruction, key_pressed);
-  if (waiting_for_input) {
-    PC -= 2;
-  }
+  decode_and_execute(instruction);
 }
 
 void Chip8::load_font_data() {
@@ -217,11 +210,9 @@ void Chip8::skip_if_not_pressed(uint8_t register_num) {
 
 void Chip8::load_from_delay_timer(uint8_t register_x) { V[register_x] = DT; }
 
-void Chip8::store_key_press(uint8_t register_num, uint8_t key_pressed) {
-  if (!key_pressed) {
-    waiting_for_input = true;
-    target_register = register_num;
-  }
+void Chip8::store_key_press(uint8_t register_num) {
+  waiting_for_input = true;
+  target_register = register_num;
 }
 
 void Chip8::set_delay_timer(uint8_t register_num) { DT = V[register_num]; }
@@ -296,7 +287,7 @@ uint16_t Chip8::fetch() const {
   return instruction;
 }
 
-void Chip8::decode_and_execute(uint16_t instruction, uint8_t key_pressed) {
+void Chip8::decode_and_execute(uint16_t instruction) {
   uint8_t type = (instruction & 0xF000) >> 12; // first nibble
   uint8_t x = (instruction & 0xF00) >> 8;      // second nibble
   uint8_t y = (instruction & 0xF0) >> 4;       // third nibble
@@ -418,7 +409,7 @@ void Chip8::decode_and_execute(uint16_t instruction, uint8_t key_pressed) {
       load_sprite(x);
       break;
     case 0xA:
-      store_key_press(x, key_pressed);
+      store_key_press(x);
       break;
     case 0xE:
       add_I(x);
