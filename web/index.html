@@ -3,36 +3,71 @@
 
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>Abhay's Chip8 Emulator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHIP-8 Terminal</title>
   <link rel="stylesheet" href="styles.css">
-  <script type="text/javascript" src="main.js"></script>
-  <script type="text/javascript" src="index.js"></script>
+  <script type="text/javascript" src="main.js" defer></script>
+  <script type="text/javascript" src="index.js" defer></script>
 </head>
 
 <body>
-  <h1>Abhay's Chip8 Emulator</h1>
-  <div class="scanlines"></div>
-  <div class="emulator-container">
-    <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
-  </div>
+  <div class="grid-overlay"></div>
 
-  <div class="controls-bar">
-    <button id="btn-reset">RESET</button>
-    <input type="file" id="file-input">
-    <button onclick="document.getElementById('file-input').click()">Upload ROM</button>
-    <select id="rom-selector">
-      <option value="" disabled selected>Choose ROM</option>
-      <option value="roms/ibm.ch8">IBM Test Screen</option>
-      <option value="roms/breakout.ch8">Breakout</option>
-      <option value="roms/flight-runner.ch8">Flight Runner</option>
-      <option value="roms/pong.ch8">Pong</option>
-      <option value="roms/tetris.ch8">Tetris</option>
-    </select>
-  </div>
-  <div id="instructions-panel" class="info-panel">
-    <div id="game-desc"></div>
-    <div id="key-map"></div>
+  <div class="terminal-container">
+    <header>
+      <h1>ABHAY'S CHIP-8 EMULATOR</h1>
+    </header>
+
+    <div class="emulator-frame">
+      <div class="scanlines"></div>
+      <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    </div>
+
+    <div class="controls-bar">
+      <div class="button-group">
+        <select id="rom-selector">
+          <option value="" disabled selected>LOAD ROM</option>
+          <option value="roms/ibm.ch8">IBM TEST</option>
+          <option value="roms/breakout.ch8">BREAKOUT</option>
+          <option value="roms/flight-runner.ch8">FLIGHT RUNNER</option>
+          <option value="roms/pong.ch8">PONG</option>
+          <option value="roms/tetris.ch8">TETRIS</option>
+        </select>
+
+        <input type="file" id="file-input">
+        <button class="btn-main" onclick="document.getElementById('file-input').click()">UPLOAD</button>
+        <button id="btn-reset">RESET</button>
+      </div>
+
+      <div class="color-picker-group">
+        <label for="draw-color">COLOR:</label>
+        <input type="color" id="draw-color" value="#ffffff">
+      </div>
+    </div>
+    <div id="instructions-panel" class="info-panel">
+      <div id="game-desc"></div>
+      <div id="key-map"></div>
+    </div>
+
+    <section class="about-section">
+      <h3>SYSTEM_ARCHITECTURE</h3>
+      <p>
+        CHIP-8 is a virtual machine originally designed in the mid-1970s. This project is a hardware-accurate emulator
+        that replicates the computer architecture of early microcomputers. It functions by manually managing 16
+        general-purpose 8-bit registers, a 12-bit Program Counter (PC), and a stack for subroutines—effectively
+        simulating the fetch-decode-execute cycle of a physical CPU.
+      </p>
+      <p>
+        The emulator core is written in <strong>C++</strong> and uses <strong>SDL3</strong> for low-level graphics,
+        audio, and input handling. To bring this system to the web, the codebase is compiled into <strong>WebAssembly
+          (Wasm)</strong>, allowing the emulated logic to run with near-native performance inside the browser.
+      </p>
+      <div class="social-links">
+        <a href="https://github.com/melchior729" target="_blank">GITHUB / MELCHIOR729</a>
+        <span class="separator">|</span>
+        <a href="https://linkedin.com/in/abhaymanoj729" target="_blank">LINKEDIN / ABHAYMANOJ729</a>
+      </div>
+    </section>
   </div>
 </body>
 

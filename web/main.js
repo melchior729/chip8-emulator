@@ -1,13 +1,10 @@
 /**
- * @file Contains the Emscripten module config.
- * This script is the middleman between JavaScript & WebAssembly.
- * It manages ROM file uploading via the virtual filesystem.
+ * @file Contains the Emscripten module config and UI logic.
  * @author Abhay Manoj
  */
 
 const urlParams = new URLSearchParams(window.location.search);
-const romToLoad = urlParams.get('rom') || "roms/ibm.ch8";
-console.log(romToLoad);
+const romToLoad = urlParams.get('rom') || "roms/tetris.ch8";
 
 var Module = {
   canvas: document.getElementById('canvas'),
@@ -15,9 +12,7 @@ var Module = {
   print: (...args) => console.log(args.join(' ')),
   printErr: (...args) => console.error(args.join(' ')),
   setStatus: (text) => {
-    if (text) {
-      console.log("Emscripten: " + text);
-    }
+    if (text) console.log("Emscripten: " + text);
   },
   preRun: [function() {
     if (romToLoad === "upload.ch8") {
@@ -32,44 +27,51 @@ var Module = {
 
 document.addEventListener('DOMContentLoaded', () => {
   const romSelector = document.getElementById('rom-selector');
-  if (romSelector) {
-    romSelector.addEventListener('change', (e) => {
-      window.location.href = `?rom=${encodeURIComponent(e.target.value)}`;
-    });
-  }
-
   const resetBtn = document.getElementById('btn-reset');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      if (romToLoad === "upload.ch8") {
-        window.location.href = window.location.pathname;
-      } else {
-        window.location.reload();
-      }
-    });
-  }
-
   const fileInput = document.getElementById('file-input');
-  if (fileInput) {
-    fileInput.addEventListener('change', function() {
-      const file = this.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function() {
-        const bytes = Array.from(new Uint8Array(reader.result));
-        sessionStorage.setItem('custom_rom_bytes', JSON.stringify(bytes));
-        window.location.href = `?rom=upload.ch8`;
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }
+  const colorPicker = document.getElementById('draw-color');
+  const descEl = document.getElementById('game-desc');
+  const keyEl = document.getElementById('key-map');
+  const panel = document.getElementById('instructions-panel');
 
-  const canvas = document.getElementById('canvas');
-  if (canvas) {
-    window.addEventListener('mousedown', () => {
-      canvas.focus();
-    });
-  }
+  romSelector?.addEventListener('change', (e) => {
+    window.location.href = `?rom=${encodeURIComponent(e.target.value)}`;
+  });
+
+  resetBtn?.addEventListener('click', () => {
+    if (romToLoad === "upload.ch8") {
+      window.location.href = window.location.pathname;
+    } else {
+      window.location.reload();
+    }
+  });
+
+  fileInput?.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function() {
+      const bytes = Array.from(new Uint8Array(reader.result));
+      sessionStorage.setItem('custom_rom_bytes', JSON.stringify(bytes));
+      window.location.href = `?rom=upload.ch8`;
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  colorPicker?.addEventListener('input', (e) => {
+    const hex = e.target.value;
+
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+
+    // Call the C++ function exported via EMSCRIPTEN_KEEPALIVE
+    if (typeof Module._set_draw_color === 'function') {
+      Module._set_draw_color(r, g, b);
+    } else {
+      console.warn("Wasm bridge 'set_draw_color' not found yet.");
+    }
+  });
 
   const romInstructions = {
     "roms/ibm.ch8": {
@@ -94,18 +96,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  const descEl = document.getElementById('game-desc');
-  const keyEl = document.getElementById('key-map');
-  const panel = document.getElementById('instructions-panel');
+  const formatKeyHints = (text) => {
+    return text.replace(/\[(.*?)\]/g, '<span class="key-cap">[$1]</span>');
+  };
 
   if (romToLoad === "upload.ch8") {
-    descEl.style.display = 'none';
-    keyEl.innerHTML = "Custom ROM Loaded. Key Layout: [1234], [QWER], [ASDF], [ZXCV]";
+    descEl.innerHTML = "<strong>CUSTOM ROM LOADED</strong>";
+    keyEl.innerHTML = formatKeyHints("Layout: [1][2][3][4] | [Q][W][E][R] | [A][S][D][F] | [Z][X][C][V]");
   } else if (romInstructions[romToLoad]) {
-    descEl.innerText = romInstructions[romToLoad].desc;
-    keyEl.innerText = romInstructions[romToLoad].keys;
+    descEl.innerHTML = `<strong>GAME:</strong> ${romInstructions[romToLoad].desc}`;
+    keyEl.innerHTML = formatKeyHints(romInstructions[romInstructions[romToLoad] ? romToLoad : ""].keys);
   } else {
-    panel.style.display = 'none';
+    if (panel) panel.style.display = 'none';
   }
-});
 
+  window.addEventListener('mousedown', () => {
+    document.getElementById('canvas')?.focus();
+  });
+});
