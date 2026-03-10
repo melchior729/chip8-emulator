@@ -2,7 +2,9 @@
 /// @brief Handles the SDL3 output
 /// @author Abhay Manoj
 /// @date Feb 27 2026
-#include "chip8.hpp"
+
+#define SDL_MAIN_USE_CALLBACKS 1
+#include "core/chip8.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_init.h>
@@ -196,9 +198,9 @@ static void draw_to_screen(void *appstate) {
     size_t offset = i * Chip8::WIDTH;
     for (size_t j = 0; j < Chip8::WIDTH; j++) {
       if (display_buffer[j + offset]) {
-        pixels[pixel_count++] =
-            SDL_FRect(j * SCALING_FACTOR, i * SCALING_FACTOR, SCALING_FACTOR,
-                      SCALING_FACTOR);
+        pixels[pixel_count++] = {(float)j * SCALING_FACTOR,
+                                 (float)i * SCALING_FACTOR,
+                                 (float)SCALING_FACTOR, (float)SCALING_FACTOR};
       }
     }
   }
