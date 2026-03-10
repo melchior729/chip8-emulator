@@ -6,12 +6,34 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>Abhay's Chip8 Emulator</title>
   <link rel="stylesheet" href="styles.css">
-  <script async type="text/javascript" src="index.js" defer></script>
-  <script async type="text/javascript" src="main.js" defer></script>
+  <script type="text/javascript" src="main.js"></script>
+  <script type="text/javascript" src="index.js"></script>
 </head>
 
 <body>
-  <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+  <h1>Abhay's Chip8 Emulator</h1>
+  <div class="scanlines"></div>
+  <div class="emulator-container">
+    <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+  </div>
+
+  <div class="controls-bar">
+    <button id="btn-reset">RESET</button>
+    <input type="file" id="file-input">
+    <button onclick="document.getElementById('file-input').click()">Upload ROM</button>
+    <select id="rom-selector">
+      <option value="" disabled selected>Choose ROM</option>
+      <option value="roms/ibm.ch8">IBM Test Screen</option>
+      <option value="roms/breakout.ch8">Breakout</option>
+      <option value="roms/flight-runner.ch8">Flight Runner</option>
+      <option value="roms/pong.ch8">Pong</option>
+      <option value="roms/tetris.ch8">Tetris</option>
+    </select>
+  </div>
+  <div id="instructions-panel" class="info-panel">
+    <div id="game-desc"></div>
+    <div id="key-map"></div>
+  </div>
 </body>
 
 </html>
