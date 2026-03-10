@@ -12,8 +12,8 @@
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #include <cmath>
+#include <emscripten.h>
 #include <fstream>
-#include <iostream>
 #include <memory>
 
 static constexpr size_t SCALING_FACTOR = 16;
@@ -31,7 +31,23 @@ struct AppState {
   float audio_data[SAMPLES];
   SDL_AudioStream *stream = nullptr;
   std::unique_ptr<Chip8> cpu;
+  uint8_t r = 0xFF;
+  uint8_t g = 0xFF;
+  uint8_t b = 0xFF;
 };
+
+static AppState *global_state = nullptr;
+
+extern "C" {
+EMSCRIPTEN_KEEPALIVE
+void set_draw_color(int r, int g, int b) {
+  if (global_state) {
+    global_state->r = static_cast<uint8_t>(r);
+    global_state->g = static_cast<uint8_t>(g);
+    global_state->b = static_cast<uint8_t>(b);
+  }
+}
+}
 
 /// @brief loads the rom from the system into the appstate
 /// @param appstate contains the current appstate
@@ -94,6 +110,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   AppState *state = new AppState();
   state->cpu = std::make_unique<Chip8>();
   *appstate = state;
+  global_state = state;
 
   if (!SDL_CreateWindowAndRenderer("Abhay's Chip8 Emulator", WINDOW_WIDTH,
                                    WINDOW_HEIGHT, 0, &state->window,
@@ -205,7 +222,8 @@ static void draw_to_screen(void *appstate) {
     }
   }
 
-  SDL_SetRenderDrawColor(state->renderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE);
+  SDL_SetRenderDrawColor(state->renderer, state->r, state->g, state->b,
+                         SDL_ALPHA_OPAQUE);
   SDL_RenderFillRects(state->renderer, pixels.data(), pixel_count);
 }
 
