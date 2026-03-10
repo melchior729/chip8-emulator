@@ -2,7 +2,6 @@
 
 mkdir -p web
 
-# CHANGE: We are now outputting to index.js, not index.html
 emcc src/main.cpp src/core/chip8.cpp \
   -Isrc/core \
   -o web/index.js \
