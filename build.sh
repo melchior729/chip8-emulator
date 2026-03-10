@@ -2,9 +2,10 @@
 
 mkdir -p web
 
+# CHANGE: We are now outputting to index.js, not index.html
 emcc src/main.cpp src/core/chip8.cpp \
   -Isrc/core \
-  -o web/index.html \
+  -o web/index.js \
   -sUSE_SDL=3 \
   --embed-file roms/ \
   -sALLOW_MEMORY_GROWTH=1 \
