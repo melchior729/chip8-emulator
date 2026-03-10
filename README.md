@@ -40,9 +40,6 @@ The web build includes a retro terminal-style interface, ROM selection, custom R
     -   Pong
         
     -   Tetris
-        
-
-## Project Structure
 
 ## Project Structure
 
