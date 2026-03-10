@@ -1,16 +1,128 @@
+:root {
+  --retro-green: #33ff33;
+  --dark-bg: #0a0a0a;
+  --glow: 0 0 10px rgba(51, 255, 51, 0.5);
+  --red-alert: #ff3333;
+}
+
 body {
-  background-color: #1a1a1a;
+  background-color: var(--dark-bg);
+  color: var(--retro-green);
+  font-family: 'Courier New', Courier, monospace;
   margin: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   height: 100vh;
   overflow: hidden;
+  text-transform: uppercase;
+}
+
+h1 {
+  letter-spacing: 4px;
+  text-shadow: var(--glow);
+  margin-bottom: 20px;
+}
+
+.emulator-container {
+  border: 3px solid var(--retro-green);
+  box-shadow: var(--glow), inset var(--glow);
+  padding: 10px;
+  background: #000;
 }
 
 canvas {
-  border: 2px solid #333;
   image-rendering: pixelated;
-  background-color: black;
+  display: block;
+  background-color: #000;
+  aspect-ratio: 2 / 1;
+  width: 100%;
+}
+
+.controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 20px;
+  padding: 10px;
+}
+
+button,
+select {
+  background: transparent;
+  color: var(--retro-green);
+  border: 1px solid var(--retro-green);
+  padding: 8px 15px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
   outline: none;
+}
+
+button:hover,
+select:hover {
+  background: var(--retro-green);
+  color: #000;
+  box-shadow: var(--glow);
+}
+
+option {
+  background: var(--dark-bg);
+  color: var(--retro-green);
+}
+
+#btn-reset {
+  border-color: var(--red-alert);
+  color: var(--red-alert);
+}
+
+#btn-reset:hover {
+  background: var(--red-alert);
+  color: #000;
+  box-shadow: 0 0 10px var(--red-alert);
+}
+
+#file-input {
+  display: none;
+}
+
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+  background-size: 100% 3px, 3px 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.info-panel {
+  margin-top: 30px;
+  padding: 15px;
+  border: 1px dashed var(--retro-green);
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+  line-height: 1.6;
+}
+
+#game-desc {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #fff;
+  text-decoration: underline;
+}
+
+.key-hint {
+  color: var(--retro-green);
+  border: 1px solid var(--retro-green);
+  padding: 2px 6px;
+  margin: 0 4px;
+  font-size: 0.9em;
 }
