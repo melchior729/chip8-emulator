@@ -113,7 +113,7 @@ select:hover {
 }
 
 input[type="color"] {
-  -webkit-ffffffappearance: none;
+  -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   width: 50px;
