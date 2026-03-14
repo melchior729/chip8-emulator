@@ -351,7 +351,7 @@ This separation makes the emulator easier to test, extend, and port.
 
 ## Known Limitations
 
-The sound works on the compiled executable, but on the web, it doesn't. I assume it has something to do with Emscripten, but I haven't looked into it yet.
+Sound : Audio works in the native SDL3 build but is currently disabled in the WebAssembly version. Browser audio requires user interaction before the AudioContext can be initialized, which conflicts with how the SDL3 audio stream is set up via Emscripten. Fixing this would require intercepting a user gesture on the JS side before starting the audio pipeline.
 
 ## Author
 
