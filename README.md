@@ -349,9 +349,9 @@ A major goal of this project is to keep the emulator core separate from the plat
 
 This separation makes the emulator easier to test, extend, and port.
 
-## What I Learned
+## Known Limitations
 
-This project required combining low-level systems concepts with practical software tooling: modeling a virtual machine in C++, implementing instruction decoding, managing memory and registers directly, rendering a pixel display manually, mapping host keyboard input to virtual keypad input, generating audio output, writing unit tests for low-level CPU behavior, and compiling native C++ code to WebAssembly for browser execution.
+The sound works on the compiled executable, but on the web, it doesn't. I assume it has something to do with Emscripten, but I haven't looked into it yet.
 
 ## Author
 
