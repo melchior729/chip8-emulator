@@ -2,8 +2,8 @@
 
 mkdir -p web
 
-emcc src/main.cpp src/core/chip8.cpp \
-  -Isrc/core \
+emcc src/main.cpp src/chip8.cpp \
+  -Isrc/ \
   -o web/index.js \
   -sUSE_SDL=3 \
   --embed-file roms/ \

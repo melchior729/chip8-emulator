@@ -6,12 +6,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-add_library(chip8lib src/core/chip8.cpp)
-target_include_directories(chip8lib PUBLIC src)
+file(GLOB SRCS "src/*")
 
-add_executable(chip8 src/main.cpp)
-target_link_libraries(chip8 PRIVATE chip8lib)
+add_executable(chip8 ${SRCS})
+target_sources(chip8 PRIVATE ${SRCS})
 
 find_package(SDL3 REQUIRED)
 target_link_libraries(chip8 PRIVATE SDL3::SDL3)

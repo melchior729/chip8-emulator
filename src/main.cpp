@@ -4,7 +4,7 @@
 /// @date Feb 27 2026
 
 #define SDL_MAIN_USE_CALLBACKS 1
-#include "core/chip8.hpp"
+#include "chip8.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_init.h>
@@ -12,7 +12,9 @@
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #include <cmath>
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#endif
 #include <fstream>
 #include <memory>
 
@@ -38,6 +40,7 @@ struct AppState {
 
 static AppState *global_state = nullptr;
 
+#ifdef __EMSCRIPTEN__
 extern "C" {
 EMSCRIPTEN_KEEPALIVE
 void set_draw_color(int r, int g, int b) {
@@ -47,7 +50,8 @@ void set_draw_color(int r, int g, int b) {
     global_state->b = static_cast<uint8_t>(b);
   }
 }
-}
+
+#endif
 
 /// @brief loads the rom from the system into the appstate
 /// @param appstate contains the current appstate
