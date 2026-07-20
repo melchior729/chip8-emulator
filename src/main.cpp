@@ -50,7 +50,7 @@ void set_draw_color(int r, int g, int b) {
     global_state->b = static_cast<uint8_t>(b);
   }
 }
-
+}
 #endif
 
 /// @brief loads the rom from the system into the appstate

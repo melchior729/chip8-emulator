@@ -25,6 +25,34 @@ var Module = {
   }]
 };
 
+// Keep the real framebuffer at the native window size.
+// CSS width:100% only scales how it looks; SDL/Emscripten must not
+// overwrite canvas.width/height with the CSS box size.
+(function lockCanvasBufferSize() {
+  const NATIVE_WIDTH = 64 * 16;   // 1024
+  const NATIVE_HEIGHT = 32 * 16;  // 512
+  const canvas = document.getElementById('canvas');
+  if (!canvas) return;
+
+  const widthDesc = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, 'width');
+  const heightDesc = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, 'height');
+
+  Object.defineProperty(canvas, 'width', {
+    configurable: true,
+    get() { return widthDesc.get.call(this); },
+    set(_value) { widthDesc.set.call(this, NATIVE_WIDTH); },
+  });
+
+  Object.defineProperty(canvas, 'height', {
+    configurable: true,
+    get() { return heightDesc.get.call(this); },
+    set(_value) { heightDesc.set.call(this, NATIVE_HEIGHT); },
+  });
+
+  canvas.width = NATIVE_WIDTH;
+  canvas.height = NATIVE_HEIGHT;
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
   const romSelector = document.getElementById('rom-selector');
   const resetBtn = document.getElementById('btn-reset');

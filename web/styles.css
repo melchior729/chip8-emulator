@@ -62,6 +62,7 @@ h1 {
 }
 
 canvas {
+  display: block;
   width: 100%;
   image-rendering: pixelated;
   aspect-ratio: 2 / 1;
